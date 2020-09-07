@@ -4,7 +4,8 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/Admingyu/gorm-paginate/paginate"
+	"github.com/Admingyu/gorm-paginate"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
@@ -29,13 +30,22 @@ func DefaultRoute(c *gin.Context) {
 	dbQuery := db.Model(&Users{}).Select("id, name, email, phone")
 
 	params := paginate.PageParams{
-		Serializer: Users{},
-		Order:      []string{"id desc", "name desc"},
-		PageIndex:  pageIndex,
-		PageSize:   pageSize,
+		Order:     []string{"id desc", "name desc"},
+		PageIndex: pageIndex,
+		PageSize:  pageSize,
 	}
-	data := paginate.Pagenate(dbQuery, params)
-	c.JSON(200, data)
+	serData := paginate.Pagenate(dbQuery, params)
+
+	var userSer []struct {
+		ID    int    `json:"id"`
+		Name  string `json:"name"`
+		Email string `json:"email"`
+		Phone string `json:"phone"`
+	}
+
+	serData.Scan(&userSer)
+
+	c.JSON(200, userSer)
 }
 
 func main() {
